@@ -67,9 +67,7 @@ class NetDev:
                             if ip in rule.rule:
                                 print(ip + " Is in acl " + str(acl.name))
                                 acl_tuple = ((str(acl.name),rule.rule))
-                                print(acl_tuple)
                                 self.acl_answer.append(acl_tuple)
-                                print (self.acl_answer)
                 if self.os_type == "NX-OS": 
                     for acl in root.devices.device[box.name].config.nx__ip.access_list.list_name:
                         print("checking ip access-list " + str(acl.id))

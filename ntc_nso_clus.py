@@ -41,13 +41,15 @@ def submain(args):
 
     def get_device_list():
         device_list = get_devs()
-        print(device_list)
+        for device in device_list:
+            net_dev = NetDev(device)
+            print("Device {} and os type {}".format(net_dev.name, net_dev.os_type))
         user_input = input('Press enter to return to menu... ')
 
     def check_ip_in_acl():
         print("\n\nEver Have the problem, \nWhere is the IP in the midst of all your ACLs?")
         print("For example, \n\ncsr1#show run | i 91.118.192.128\n  permit 91.118.192.128\ncsr1#\n\n")
-        user_input = input('Enter an IP Address to Check in the Extended ACLs (default is 91.118.192.128):  ') or "91.118.192.128"
+        user_input = input('Enter an IP Address to Check in the Extended ACLs (default is 91.118.192.128), good choices for Nexus (10.246.84.201 or 10.246.84.201):  ') or "91.118.192.128"
         device_list = get_devs()
         csv_header = ["ACL Name", "ACL Rule"]
         type_of_audit = "acl"
@@ -70,7 +72,7 @@ def submain(args):
             "\n!\ninterface GigabitEthernet1\n vrf forwarding MANAGEMENT\n ip address 10.0.0.51 255.255.255.0\n"+
                 " negotiation auto\n no mop enabled\n no mop sysid\nend\n\n")
         print("\n\n But what about across many devices?")
-        user_input = input('Enter an IP Address to Check in the Extended ACLs (default is 10.0.0.51), good choices for Nexus (10.246.84.201 or 10.246.84.201):  ') or "10.0.0.51"
+        user_input = input('Enter an IP Address to Check in the Extended ACLs (default is 10.0.0.51):  ') or "10.0.0.51"
         device_list = get_devs()
         csv_header = ["Interface Type", "Interface Name"]
         type_of_audit = "interface"
