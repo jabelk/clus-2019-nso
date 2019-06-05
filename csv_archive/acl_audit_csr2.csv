@@ -1,0 +1,11 @@
+ACL Name,ACL Rule
+vpn-customer-1-amer-location,permit udp 0.0.0.0 255.255.255.224 eq snmp 91.118.192.128 0.0.0.127
+vpn-customer-1-amer-location,permit udp 0.0.0.0 255.255.255.224 91.118.192.128 0.0.0.127 eq snmptrap
+vpn-customer-1-amer-location,permit tcp 0.0.0.0 255.255.255.224 range 1019 1023 91.118.192.128 0.0.0.127
+vpn-customer-1-amer-location,permit tcp 0.0.0.0 255.255.255.224 eq exec 91.118.192.128 0.0.0.127
+vpn-customer-2-amer-location,permit udp 10.51.216.0 0.0.7.255 eq snmp 91.118.192.128 0.0.0.127
+vpn-customer-2-amer-location,permit udp 10.51.216.0 0.0.7.255 91.118.192.128 0.0.0.127 eq snmptrap
+vpn-customer-2-amer-location,permit tcp 10.51.216.0 0.0.7.255 range 1019 1023 91.118.192.128 0.0.0.127
+vpn-customer-2-amer-location,permit tcp 10.51.216.0 0.0.7.255 eq exec 91.118.192.128 0.0.0.127
+vpn-customer-3-us,permit udp 172.23.0.0 0.0.255.255 eq snmp 91.118.192.128 0.0.0.127
+vpn-customer-3-us,permit udp 172.23.0.0 0.0.255.255 91.118.192.128 0.0.0.127 eq snmptrap
