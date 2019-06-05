@@ -27,16 +27,16 @@ def find_ip_access_list(ip):
         for box in root.devices.device:
             print("checking Standard Access Lists for " + str(box.name))
             if get_os_type(devicename) == "ios-xe": 
-                for acl in root.devices.device[box.name].config.ios_ip.access_list.standard.std_named_acl:
+                for acl in root.devices.device[box.name].config.ios__ip.access_list.standard.std_named_acl:
                     print("checking ip access-list standard " + str(acl.name))
-                    for rule in root.devices.device[box.name].config.ios_ip.access_list.standard.std_named_acl[acl.name].std_access_list_rule:
+                    for rule in root.devices.device[box.name].config.ios__ip.access_list.standard.std_named_acl[acl.name].std_access_list_rule:
                         if ip in rule.rule:
                             print(ip + " Is in acl " + str(acl.name))
                             acl_answer.append({"name":str(acl.name),"rule":rule.rule})
                 print("checking Extended Access Lists for " + str(box.name))
-                for acl in root.devices.device[box.name].config.ios_ip.access_list.extended.ext_named_acl:
+                for acl in root.devices.device[box.name].config.ios__ip.access_list.extended.ext_named_acl:
                     print("checking ip access-list extended " + str(acl.name))
-                    for rule in root.devices.device[box.name].config.ios_ip.access_list.extended.ext_named_acl[acl.name].ext_access_list_rule:
+                    for rule in root.devices.device[box.name].config.ios__ip.access_list.extended.ext_named_acl[acl.name].ext_access_list_rule:
                         if ip in rule.rule:
                             print(ip + " Is in acl " + str(acl.name))
                             acl_answer.append({"name":str(acl.name),"rule":rule.rule})
@@ -68,7 +68,7 @@ class NetDev:
 
     def __init__(self, name):
         self.name = name
-        self.get_os_type(self.name)
+        self.get_os_type()
         # ios-xe, NX-OS common optoins
         #self.chg(partial(self.chg_admin_state, state="unlocked"))
 
@@ -78,11 +78,10 @@ class NetDev:
                   self.get_lines)
 
 
-    def get_os_type ():
+    def get_os_type (self):
         with ncs.maapi.single_read_trans('admin', 'python', groups=['ncsadmin']) as t:
             root = ncs.maagic.get_root(t)
             self.os_type = root.devices.device[self.name].platform.name
-        return os_type
 
     def find_ip_access_list(self, ip, device_name):
         """
@@ -100,16 +99,16 @@ class NetDev:
         with ncs.maapi.single_read_trans('admin', 'python', groups=['ncsadmin']) as t:
             root = ncs.maagic.get_root(t)
             print("checking Standard Access Lists for " + str(device_name))
-            for acl in root.devices.device[device_name].config.ios_ip.access_list.standard.std_named_acl:
+            for acl in root.devices.device[device_name].config.ios__ip.access_list.standard.std_named_acl:
                 print("checking ip access-list standard " + str(acl.name))
-                for rule in root.devices.device[device_name].config.ios_ip.access_list.standard.std_named_acl[acl.name].std_access_list_rule:
+                for rule in root.devices.device[device_name].config.ios__ip.access_list.standard.std_named_acl[acl.name].std_access_list_rule:
                     if ip in rule.rule:
                         print(ip + " Is in acl " + str(acl.name))
                         self.append({"Device Name": str(device_name), "ACL name":str(acl.name),"rule in ACL":rule.rule})
             print("checking Extended Access Lists for " + str(device_name))
-            for acl in root.devices.device[device_name].config.ios_ip.access_list.extended.ext_named_acl:
+            for acl in root.devices.device[device_name].config.ios__ip.access_list.extended.ext_named_acl:
                 print("checking ip access-list extended " + str(acl.name))
-                for rule in root.devices.device[device_name].config.ios_ip.access_list.extended.ext_named_acl[acl.name].ext_access_list_rule:
+                for rule in root.devices.device[device_name].config.ios__ip.access_list.extended.ext_named_acl[acl.name].ext_access_list_rule:
                     if ip in rule.rule:
                         print(ip + " Is in acl " + str(acl.name))
                         self.append({"Device Name": str(device_name), "ACL name":str(acl.name),"rule in ACL":rule.rule})
