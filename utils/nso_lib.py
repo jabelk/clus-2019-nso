@@ -10,6 +10,29 @@ def get_devs():
             device_list.append(netdev.name)
     return device_list
 
+def find_ip_access_list(ip):
+    """
+    Single search to see if a provided IP address
+    is present inside any of a devices extended ACLs.
+    """
+    acl_answer = []
+    with ncs.maapi.single_read_trans('admin', 'python', groups=['ncsadmin']) as t:
+        root = ncs.maagic.get_root(t)
+        for box in root.devices.device:
+            print("checking Standard Access Lists for " + str(box.name))
+            for acl in root.devices.device[box.name].config.ip.access_list.standard.std_named_acl:
+                print("checking ip access-list standard " + str(acl.name))
+                for rule in root.devices.device[box.name].config.ip.access_list.standard.std_named_acl[acl.name].std_access_list_rule:
+                    if ip in rule.rule:
+                        print(ip + " Is in acl " + str(acl.name))
+                        acl_answer.append({"name":str(acl.name),"rule":rule.rule})
+            print("checking Extended Access Lists for " + str(box.name))
+            for acl in root.devices.device[box.name].config.ip.access_list.extended.ext_named_acl:
+                print("checking ip access-list extended " + str(acl.name))
+                for rule in root.devices.device[box.name].config.ip.access_list.extended.ext_named_acl[acl.name].ext_access_list_rule:
+                    if ip in rule.rule:
+                        print(ip + " Is in acl " + str(acl.name))
+                        acl_answer.append({"name":str(acl.name),"rule":rule.rule})
 
 
 
