@@ -1,4 +1,4 @@
-# CLUS NSO + ROBOT Demo
+`# CLUS NSO + ROBOT Demo
 
 # NSO Device List
 
@@ -28,7 +28,7 @@ Press enter to return to menu...
 
 ## NSO ACL Audit
 
-Sample output
+Sample output or Check the `CSV Archive` Directory!
 ```
 
   ┌─────────────────────────────────────────────────────────────────────────┐
@@ -195,7 +195,7 @@ Press enter to return to menu...
 
 ## NSO Interface IP Audit
 
-Sample output + CSV
+Sample output or Check the `CSV Archive` Directory
 
 ```
 
