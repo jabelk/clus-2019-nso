@@ -1,6 +1,7 @@
 #macs
 .DS_Store
-
+*.xml
+*.html
 
 #ansible
 *.retry
