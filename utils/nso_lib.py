@@ -16,49 +16,8 @@ def get_os_type (devicename):
      os_type = root.devices.device[devicename].platform.name
      return os_type
 
-def find_ip_access_list(ip):
-    """
-    Single search to see if a provided IP address
-    is present inside any of a devices extended ACLs.
-    """
-    acl_answer = []
-    with ncs.maapi.single_read_trans('admin', 'python', groups=['ncsadmin']) as t:
-        root = ncs.maagic.get_root(t)
-        for box in root.devices.device:
-            print("checking Standard Access Lists for " + str(box.name))
-            if get_os_type(devicename) == "ios-xe": 
-                for acl in root.devices.device[box.name].config.ios__ip.access_list.standard.std_named_acl:
-                    print("checking ip access-list standard " + str(acl.name))
-                    for rule in root.devices.device[box.name].config.ios__ip.access_list.standard.std_named_acl[acl.name].std_access_list_rule:
-                        if ip in rule.rule:
-                            print(ip + " Is in acl " + str(acl.name))
-                            acl_answer.append({"name":str(acl.name),"rule":rule.rule})
-                print("checking Extended Access Lists for " + str(box.name))
-                for acl in root.devices.device[box.name].config.ios__ip.access_list.extended.ext_named_acl:
-                    print("checking ip access-list extended " + str(acl.name))
-                    for rule in root.devices.device[box.name].config.ios__ip.access_list.extended.ext_named_acl[acl.name].ext_access_list_rule:
-                        if ip in rule.rule:
-                            print(ip + " Is in acl " + str(acl.name))
-                            acl_answer.append({"name":str(acl.name),"rule":rule.rule})
-            if get_os_type(devicename) == "NX-OS": 
-                for acl in root.devices.device[box.name].config.nx__ip.access_list.list_name:
-                    print("checking ip access-list " + str(acl.id))
-                    for sequence in acl.sequence:
-                        print("{} {} {} {} {}".format(str(sequence.id), str(sequence.action),str(sequence.source.address_and_prefix), 
-                            str(sequence.address_and_prefix), 
-                            str(sequence.protocol)))
-    return acl_answer
-
-
-def create_csv_list_of_dicts(listofdicts_tocsv):
-    headers = listofdicts_tocsv[0].keys()
-    with open('csv_archive/acl_audit.csv','w') as f:
-        w = csv.DictWriter(f,headers)
-        w.writeheader()
-        w.writerows( listofdicts_tocsv)    
-
-def create_csv_list_of_tuples(listoftuples_tocsv, headers, device):
-    with open('csv_archive/interface_audit_{}.csv'.format(device),'w') as f:
+def create_csv_list_of_tuples(listoftuples_tocsv, headers, device, type_of_audit):
+    with open('csv_archive/{}_audit_{}.csv'.format(type_of_audit, device),'w') as f:
         w = csv.writer(f,headers)
         w.writerow(headers)
         for line in listoftuples_tocsv:
@@ -74,8 +33,7 @@ class NetDev:
 
         #self.check_sync()
         self.view(#self.fetch_ssh_keys,
-                  self.get_ints,
-                  self.get_lines)
+                  self.get_ints)
 
 
     def get_os_type (self):
@@ -83,35 +41,47 @@ class NetDev:
             root = ncs.maagic.get_root(t)
             self.os_type = root.devices.device[self.name].platform.name
 
-    def find_ip_access_list(self, ip, device_name):
+    def find_ip_access_list(self, ip):
         """
         Single search to see if a provided IP address
         is present inside any of a devices extended ACLs.
         acl_answer is list of dicts with keys name and rule
         """
         self.acl_answer = []
-# /devices/device[name='nxos-spine1']/config/nx:ip/access-list/list-name[id='nexus-dc-customer-1-emear-location']/sequence[id='10']/source/address-and-prefix 10.246.84.201/23
-# /devices/device[name='nxos-spine1']/config/nx:ip/access-list/list-name[id='standard']/sequence[id='10']/any
-# /devices/device[name='nxos-spine1']/config/nx:ip/access-list/list-name[id='standard']/sequence[id='10']/established
-# /devices/device[name='nxos-spine1']/config/nx:ip/access-list/list-name[id='standard']/sequence[id='20']/action permit
-# /devices/device[name='nxos-spine1']/config/nx:ip/access-list/list-name[id='standard']/sequence[id='20']/protocol icmp
-# /devices/device[name='nxos-spine1']/config/nx:ip/access-list/list-name[id='standard']/sequence[id='20']/source/address-and-prefix 10.246.66.255/19
         with ncs.maapi.single_read_trans('admin', 'python', groups=['ncsadmin']) as t:
             root = ncs.maagic.get_root(t)
-            print("checking Standard Access Lists for " + str(device_name))
-            for acl in root.devices.device[device_name].config.ios__ip.access_list.standard.std_named_acl:
-                print("checking ip access-list standard " + str(acl.name))
-                for rule in root.devices.device[device_name].config.ios__ip.access_list.standard.std_named_acl[acl.name].std_access_list_rule:
-                    if ip in rule.rule:
-                        print(ip + " Is in acl " + str(acl.name))
-                        self.append({"Device Name": str(device_name), "ACL name":str(acl.name),"rule in ACL":rule.rule})
-            print("checking Extended Access Lists for " + str(device_name))
-            for acl in root.devices.device[device_name].config.ios__ip.access_list.extended.ext_named_acl:
-                print("checking ip access-list extended " + str(acl.name))
-                for rule in root.devices.device[device_name].config.ios__ip.access_list.extended.ext_named_acl[acl.name].ext_access_list_rule:
-                    if ip in rule.rule:
-                        print(ip + " Is in acl " + str(acl.name))
-                        self.append({"Device Name": str(device_name), "ACL name":str(acl.name),"rule in ACL":rule.rule})
+            for box in root.devices.device:
+                print("checking Standard Access Lists for " + str(box.name))
+                if self.os_type == "ios-xe": 
+                    for acl in root.devices.device[box.name].config.ios__ip.access_list.standard.std_named_acl:
+                        print("checking ip access-list standard " + str(acl.name))
+                        for rule in root.devices.device[box.name].config.ios__ip.access_list.standard.std_named_acl[acl.name].std_access_list_rule:
+                            if ip in rule.rule:
+                                print(ip + " Is in acl " + str(acl.name))
+                                acl_tuple = ((str(acl.name),rule.rule))
+                                self.acl_answer.append(acl_tuple)
+                    print("checking Extended Access Lists for " + str(box.name))
+                    for acl in root.devices.device[box.name].config.ios__ip.access_list.extended.ext_named_acl:
+                        print("checking ip access-list extended " + str(acl.name))
+                        for rule in root.devices.device[box.name].config.ios__ip.access_list.extended.ext_named_acl[acl.name].ext_access_list_rule:
+                            if ip in rule.rule:
+                                print(ip + " Is in acl " + str(acl.name))
+                                acl_tuple = ((str(acl.name),rule.rule))
+                                print(acl_tuple)
+                                self.acl_answer.append(acl_tuple)
+                                print (self.acl_answer)
+                if self.os_type == "NX-OS": 
+                    for acl in root.devices.device[box.name].config.nx__ip.access_list.list_name:
+                        print("checking ip access-list " + str(acl.id))
+                        for sequence in acl.sequence:
+                            acl_line = "{} {} {} {} {}".format(str(sequence.id), str(sequence.action),str(sequence.source.address_and_prefix), 
+                                str(sequence.address_and_prefix), 
+                                str(sequence.protocol))
+                            if ip in acl_line:
+                                self.acl_answer.append((str(acl.id), acl_line))
+                                acl_tuple = (str(acl.id), acl_line)
+                                self.acl_answer.append(acl_tuple)
+        return self.acl_answer
         
 
     def view(self,*args):
@@ -169,23 +139,6 @@ class NetDev:
         return output_dict
 
 
-    def lock(self, device_cdb):
-        device_cdb.state.admin_state = "locked"
-
-
-    def fetch_ssh_keys(self, device_cdb):
-        device_cdb.ssh.fetch_host_keys()
-
-
-    def check_sync(self):
-        if not self.in_sync():
-            self.chg(self.sync_from)
-
-
-    def sync_from(self, device_cdb):
-        device_cdb.sync_from()
-
-
     def in_sync(self):
         with ncs.maapi.Maapi() as m:
             with ncs.maapi.Session(m, 'admin', 'python', groups=['ncsadmin']):
@@ -230,44 +183,6 @@ class NetDev:
                 self.ints.extend(results)
         except:
             self.ints = []
-
-
-    def get_lines_of_type(self, line_type, device_cdb):
-        """
-        Gets a full list of a single type of line.
-        self.view(partial(self.whatever_method,param1=(blah,blah))
-        """
-        line_list=[]
-        try:
-            for line in device_cdb.config.ios__line[line_type]:
-                if hasattr(line, 'first') and not hasattr(line, 'last'):
-                    line_tuple = (line_type, str(line.first))
-                    line_list.append(line_tuple)
-                elif hasattr(line, 'first') and hasattr(line, 'last'):
-                    line_tuple = (line_type, int(line.first), line.last)
-                    line_list.append(line_tuple)
-            return line_list
-        except:
-            return []
-
-
-    def get_lines(self, device_cdb):
-        """
-        Returns a full list of all present lines on a device in tuple form (line_type_type,first_line,last_line).
-        Example  [("aux",0),("vty",0,4)]
-        self.view(self.whatever_method)
-        """
-        line_type_list = []
-        self.lines=[]
-        try:
-            for line in device_cdb.config.ios__line:
-                line_type_list.append(line[4:])
-            line_type_list = list(set(line_type_list))
-            for line_type in line_type_list:
-                results = self.get_lines_of_type(line_type=line_type, device_cdb=device_cdb)
-                self.lines.extend(results)
-        except:
-            self.lines = []
 
 
     def has_ip(self, interface_tuple, device_cdb, ip=""):
@@ -334,3 +249,19 @@ class NetDev:
             device_cdb.state.admin_state = "locked"
         elif state == "unlocked":
             device_cdb.state.admin_state = "unlocked"
+
+    def lock(self, device_cdb):
+        device_cdb.state.admin_state = "locked"
+
+
+    def fetch_ssh_keys(self, device_cdb):
+        device_cdb.ssh.fetch_host_keys()
+
+
+    def check_sync(self):
+        if not self.in_sync():
+            self.chg(self.sync_from)
+
+
+    def sync_from(self, device_cdb):
+        device_cdb.sync_from()
