@@ -10,6 +10,12 @@ def get_devs():
             device_list.append(netdev.name)
     return device_list
 
+def get_os_type (devicename):
+    with ncs.maapi.single_read_trans('admin', 'python', groups=['ncsadmin']) as t:
+     root = ncs.maagic.get_root(t)
+     os_type = root.devices.device[devicename].platform.name
+     return os_type
+
 def find_ip_access_list(ip):
     """
     Single search to see if a provided IP address
@@ -20,20 +26,27 @@ def find_ip_access_list(ip):
         root = ncs.maagic.get_root(t)
         for box in root.devices.device:
             print("checking Standard Access Lists for " + str(box.name))
-            for acl in root.devices.device[box.name].config.ip.access_list.standard.std_named_acl:
-                print("checking ip access-list standard " + str(acl.name))
-                for rule in root.devices.device[box.name].config.ip.access_list.standard.std_named_acl[acl.name].std_access_list_rule:
-                    if ip in rule.rule:
-                        print(ip + " Is in acl " + str(acl.name))
-                        acl_answer.append({"name":str(acl.name),"rule":rule.rule})
-            print("checking Extended Access Lists for " + str(box.name))
-            for acl in root.devices.device[box.name].config.ip.access_list.extended.ext_named_acl:
-                print("checking ip access-list extended " + str(acl.name))
-                for rule in root.devices.device[box.name].config.ip.access_list.extended.ext_named_acl[acl.name].ext_access_list_rule:
-                    if ip in rule.rule:
-                        print(ip + " Is in acl " + str(acl.name))
-                        acl_answer.append({"name":str(acl.name),"rule":rule.rule})
-
+            if get_os_type(devicename) == "ios-xe": 
+                for acl in root.devices.device[box.name].config.ios_ip.access_list.standard.std_named_acl:
+                    print("checking ip access-list standard " + str(acl.name))
+                    for rule in root.devices.device[box.name].config.ios_ip.access_list.standard.std_named_acl[acl.name].std_access_list_rule:
+                        if ip in rule.rule:
+                            print(ip + " Is in acl " + str(acl.name))
+                            acl_answer.append({"name":str(acl.name),"rule":rule.rule})
+                print("checking Extended Access Lists for " + str(box.name))
+                for acl in root.devices.device[box.name].config.ios_ip.access_list.extended.ext_named_acl:
+                    print("checking ip access-list extended " + str(acl.name))
+                    for rule in root.devices.device[box.name].config.ios_ip.access_list.extended.ext_named_acl[acl.name].ext_access_list_rule:
+                        if ip in rule.rule:
+                            print(ip + " Is in acl " + str(acl.name))
+                            acl_answer.append({"name":str(acl.name),"rule":rule.rule})
+            if get_os_type(devicename) == "NX-OS": 
+                for acl in root.devices.device[box.name].config.nx__ip.access_list.list_name:
+                    print("checking ip access-list " + str(acl.id))
+                    for sequence in acl.sequence:
+                        print("{} {} {} {} {}".format(str(sequence.id), str(sequence.action),str(sequence.source.address_and_prefix), 
+                            str(sequence.address_and_prefix), 
+                            str(sequence.protocol))
 
 
 def create_csv_list_of_dicts(listofdicts_tocsv):
@@ -54,7 +67,8 @@ class NetDev:
 
     def __init__(self, name):
         self.name = name
-
+        self.get_os_type(self.name)
+        # ios-xe, NX-OS common optoins
         #self.chg(partial(self.chg_admin_state, state="unlocked"))
 
         #self.check_sync()
@@ -63,6 +77,11 @@ class NetDev:
                   self.get_lines)
 
 
+    def get_os_type ():
+        with ncs.maapi.single_read_trans('admin', 'python', groups=['ncsadmin']) as t:
+            root = ncs.maagic.get_root(t)
+            self.os_type = root.devices.device[self.name].platform.name
+        return os_type
 
     def find_ip_access_list(self, ip, device_name):
         """
@@ -71,20 +90,25 @@ class NetDev:
         acl_answer is list of dicts with keys name and rule
         """
         self.acl_answer = []
-        
+# /devices/device[name='nxos-spine1']/config/nx:ip/access-list/list-name[id='nexus-dc-customer-1-emear-location']/sequence[id='10']/source/address-and-prefix 10.246.84.201/23
+# /devices/device[name='nxos-spine1']/config/nx:ip/access-list/list-name[id='standard']/sequence[id='10']/any
+# /devices/device[name='nxos-spine1']/config/nx:ip/access-list/list-name[id='standard']/sequence[id='10']/established
+# /devices/device[name='nxos-spine1']/config/nx:ip/access-list/list-name[id='standard']/sequence[id='20']/action permit
+# /devices/device[name='nxos-spine1']/config/nx:ip/access-list/list-name[id='standard']/sequence[id='20']/protocol icmp
+# /devices/device[name='nxos-spine1']/config/nx:ip/access-list/list-name[id='standard']/sequence[id='20']/source/address-and-prefix 10.246.66.255/19
         with ncs.maapi.single_read_trans('admin', 'python', groups=['ncsadmin']) as t:
             root = ncs.maagic.get_root(t)
             print("checking Standard Access Lists for " + str(device_name))
-            for acl in root.devices.device[device_name].config.ip.access_list.standard.std_named_acl:
+            for acl in root.devices.device[device_name].config.ios_ip.access_list.standard.std_named_acl:
                 print("checking ip access-list standard " + str(acl.name))
-                for rule in root.devices.device[device_name].config.ip.access_list.standard.std_named_acl[acl.name].std_access_list_rule:
+                for rule in root.devices.device[device_name].config.ios_ip.access_list.standard.std_named_acl[acl.name].std_access_list_rule:
                     if ip in rule.rule:
                         print(ip + " Is in acl " + str(acl.name))
                         self.append({"Device Name": str(device_name), "ACL name":str(acl.name),"rule in ACL":rule.rule})
             print("checking Extended Access Lists for " + str(device_name))
-            for acl in root.devices.device[device_name].config.ip.access_list.extended.ext_named_acl:
+            for acl in root.devices.device[device_name].config.ios_ip.access_list.extended.ext_named_acl:
                 print("checking ip access-list extended " + str(acl.name))
-                for rule in root.devices.device[device_name].config.ip.access_list.extended.ext_named_acl[acl.name].ext_access_list_rule:
+                for rule in root.devices.device[device_name].config.ios_ip.access_list.extended.ext_named_acl[acl.name].ext_access_list_rule:
                     if ip in rule.rule:
                         print(ip + " Is in acl " + str(acl.name))
                         self.append({"Device Name": str(device_name), "ACL name":str(acl.name),"rule in ACL":rule.rule})
@@ -122,11 +146,17 @@ class NetDev:
                 with ncs.maapi.Session(m, 'admin', 'python'):
                     root = ncs.maagic.get_root(m)
                     device = root.devices.device[self.name]
-                    input1 = device.live_status.ios_stats__exec.show.get_input()
+                    if self.os_type == "ios-xe":
+                        input1 = device.live_status.ios_stats__exec.any.get_input()
+                    if self.os_type == "NX-OS":   
+                        input1 = device.live_status.nx_stats__exec.any.get_input()
                     for command in args:
                         if command != "":
                             input1.args = [command]
-                            output = device.live_status.ios_stats__exec.any(input1).result
+                            if self.os_type == "ios-xe":
+                                output = device.live_status.ios_stats__exec.any(input1).result
+                            if self.os_type == "NX-OS":   
+                                output = device.live_status.nx_stats__exec.any(input1).result
                             outlist = output.split("\r\n")[1:-1]
                             output_dict[command] = outlist
                         else:
