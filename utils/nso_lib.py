@@ -46,7 +46,8 @@ def find_ip_access_list(ip):
                     for sequence in acl.sequence:
                         print("{} {} {} {} {}".format(str(sequence.id), str(sequence.action),str(sequence.source.address_and_prefix), 
                             str(sequence.address_and_prefix), 
-                            str(sequence.protocol))
+                            str(sequence.protocol)))
+    return acl_answer
 
 
 def create_csv_list_of_dicts(listofdicts_tocsv):
