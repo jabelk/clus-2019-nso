@@ -72,7 +72,7 @@ def submain(args):
             "\n!\ninterface GigabitEthernet1\n vrf forwarding MANAGEMENT\n ip address 10.0.0.51 255.255.255.0\n"+
                 " negotiation auto\n no mop enabled\n no mop sysid\nend\n\n")
         print("\n\n But what about across many devices?")
-        user_input = input('Enter an IP Address to Check in the Extended ACLs (default is 10.0.0.51):  ') or "10.0.0.51"
+        user_input = input('Enter one, or many IP Address(es) to Check in the Extended ACLs (default is 10.0.0.51), also try 10.0.0.52, 10.0.0.53, 10.0.0.71, 10.0.0.72:  ') or "10.0.0.51"
         device_list = get_devs()
         csv_header = ["Interface Type", "Interface Name"]
         type_of_audit = "interface"

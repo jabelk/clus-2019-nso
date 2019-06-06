@@ -156,11 +156,18 @@ class NetDev:
         """
         int_list = []
         try:
-            for interface in device_cdb.config.ios__interface[int_type]:
-                if hasattr(interface, 'name'):
-                    int_tuple = (int_type,interface.name)
-                    int_list.append(int_tuple)
-            return int_list
+            if self.os_type == "NX-OS": 
+                for interface in device_cdb.config.nx__interface[int_type]:
+                    if hasattr(interface, 'name'):
+                        int_tuple = (int_type,interface.name)
+                        int_list.append(int_tuple)
+                return int_list
+            if self.os_type == "ios-xe":
+                for interface in device_cdb.config.ios__interface[int_type]:
+                    if hasattr(interface, 'name'):
+                        int_tuple = (int_type,interface.name)
+                        int_list.append(int_tuple)
+                return int_list
         except:
             return []
 
@@ -173,12 +180,20 @@ class NetDev:
         int_type_list = []
         self.ints=[]
         try:
-            for interface in device_cdb.config.ios__interface:
-                int_type_list.append(interface[4:])
-            int_type_list = list(set(int_type_list))
-            for int_type in int_type_list:
-                results = self.get_ints_of_type(int_type=int_type, device_cdb=device_cdb)
-                self.ints.extend(results)
+            if self.os_type == "NX-OS": 
+                for interface in device_cdb.config.nx__interface:
+                    int_type_list.append(interface[3:])
+                int_type_list = list(set(int_type_list))
+                for int_type in int_type_list:
+                    results = self.get_ints_of_type(int_type=int_type, device_cdb=device_cdb)
+                    self.ints.extend(results)
+            if self.os_type == "ios-xe":
+                for interface in device_cdb.config.ios__interface:
+                    int_type_list.append(interface[4:])
+                int_type_list = list(set(int_type_list))
+                for int_type in int_type_list:
+                    results = self.get_ints_of_type(int_type=int_type, device_cdb=device_cdb)
+                    self.ints.extend(results)
         except:
             self.ints = []
 
@@ -190,11 +205,18 @@ class NetDev:
         """
         try:
             int_type,int_num = interface_tuple
-            interface = device_cdb.config.ios__interface[int_type][int_num]
-            if interface.ip.address.primary.address and not ip:
-                return True
-            elif interface.ip.address.primary.address == ip:
-                return True
+            if self.os_type == "NX-OS": 
+                interface = device_cdb.config.nx__interface[int_type][int_num]
+                if interface.ip.address.ipaddr and not ip:
+                    return True
+                elif ip in interface.ip.address.ipaddr :
+                    return True
+            if self.os_type == "ios-xe":
+                interface = device_cdb.config.ios__interface[int_type][int_num]
+                if interface.ip.address.primary.address and not ip:
+                    return True
+                elif interface.ip.address.primary.address == ip:
+                    return True
             else:
                 return False
         except:
@@ -208,9 +230,14 @@ class NetDev:
         """
         try:
             int_type, int_num = interface_tuple
-            interface = device_cdb.config.ios__interface[int_type][int_num]
-            if interface.ip.address.primary.address:
-                return interface.ip.address.primary.address
+            if self.os_type == "NX-OS": 
+                interface = device_cdb.config.nx__interface[int_type][int_num]
+                if interface.ip.address.ipaddr:
+                    return interface.ip.address.ipaddr
+            if self.os_type == "ios-xe":
+                interface = device_cdb.config.ios__interface[int_type][int_num]
+                if interface.ip.address.primary.address:
+                    return interface.ip.address.primary.address
             else:
                 return ""
         except:
