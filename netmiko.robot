@@ -1,6 +1,6 @@
 *** Settings ***
 Library    OperatingSystem
-Library    NetmikoOperator.py
+Library    utils/NetmikoOperator.py
 
 ** Variables **
 ${IP}   18.215.36.232

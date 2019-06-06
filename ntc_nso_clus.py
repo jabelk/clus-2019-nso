@@ -46,16 +46,18 @@ def submain(args):
             print("Device {} and os type {}".format(net_dev.name, net_dev.os_type))
         user_input = input('Press enter to return to menu... ')
 
-    def check_ip_in_acl():
+    def check_ip_in_acl_ios():
         print("\n\nEver Have the problem, \nWhere is the IP in the midst of all your ACLs?")
         print("For example, \n\ncsr1#show run | i 91.118.192.128\n  permit 91.118.192.128\ncsr1#\n\n")
-        user_input = input('Enter an IP Address to Check in the Extended ACLs (default is 91.118.192.128), good choices for Nexus (10.246.84.201 or 10.246.84.201):  ') or "91.118.192.128"
+        user_input = input('Enter an IP Address to Check in the Extended ACLs (default is 91.118.192.128):  ') or "91.118.192.128"
         device_list = get_devs()
         csv_header = ["ACL Name", "ACL Rule"]
         type_of_audit = "acl"
         for device in device_list:
             nso_device = NetDev(device)
-            nso_device.find_ip_access_list(user_input)
+            if nso_device.os_type == "NX-OS":
+                continue
+            nso_device.find_ip_access_list(user_input, nso_device.os_type)
             if nso_device.acl_answer == []:
                 print("The IP address {} was not found in {}".format(user_input, device))
                 continue
@@ -63,6 +65,27 @@ def submain(args):
             # print(nso_device.acl_answer)
             create_csv_list_of_tuples(nso_device.acl_answer, csv_header, device, type_of_audit)
         user_input = input('Press enter to return to menu... ')
+
+    def check_ip_in_acl_nexus():
+        print("\n\nEver Have the problem, \nWhere is the IP in the midst of all your ACLs?")
+        print("For example, \n\nnxos-spine1# show running-config | include 10.6.196.5\n  10 permit tcp 10.6.196.5/16 169.112.3.171/32 eq 143\n  20 permit tcp 10.6.196.5/16 169.112.3.171/32 eq 993\n  "
+            +"30 permit tcp 10.6.196.5/16 169.112.3.171/32 eq 995\n  40 permit tcp 10.6.196.5/16 169.112.3.248/32 eq www\n\n")
+        user_input = input('Enter an IP Address to Check in the Extended ACLs (default is 10.246.84.201), good choices for Nexus (10.246.84.201 or 10.6.196.5):  ') or "10.246.84.201"
+        device_list = get_devs()
+        csv_header = ["ACL Name", "ACL Rule"]
+        type_of_audit = "acl"
+        for device in device_list:
+            nso_device = NetDev(device)
+            if nso_device.os_type == "NX-OS":
+                nso_device.find_ip_access_list(user_input, nso_device.os_type)
+                if nso_device.acl_answer == []:
+                    print("The IP address {} was not found in {}".format(user_input, device))
+                    continue
+                print("Creating CSV for Audit Output for Device {}".format(device))
+                # print(nso_device.acl_answer)
+                create_csv_list_of_tuples(nso_device.acl_answer, csv_header, device, type_of_audit)
+        user_input = input('Press enter to return to menu... ')
+
 
     def interface_t_shoot():
         print("\n\nEver Have the problem, \nWhere is the IP in the midst of all your Interfaces?")
@@ -72,7 +95,7 @@ def submain(args):
             "\n!\ninterface GigabitEthernet1\n vrf forwarding MANAGEMENT\n ip address 10.0.0.51 255.255.255.0\n"+
                 " negotiation auto\n no mop enabled\n no mop sysid\nend\n\n")
         print("\n\n But what about across many devices?")
-        user_input = input('Enter one, or many IP Address(es) to Check in the Extended ACLs (default is 10.0.0.51), also try 10.0.0.52, 10.0.0.53, 10.0.0.71, 10.0.0.72:  ') or "10.0.0.51"
+        user_input = input('Enter one, or many IP Address(es) to Check in the Interfaces (default is 10.0.0.51), also try 10.0.0.52, 10.0.0.53, 10.0.0.71, 10.0.0.72:  ') or "10.0.0.51"
         device_list = get_devs()
         csv_header = ["Interface Type", "Interface Name"]
         type_of_audit = "interface"
@@ -92,7 +115,8 @@ def submain(args):
 
         menu_items = [
             ("View All Devices", get_device_list),
-            ("Audit All ACLs from Input", check_ip_in_acl),
+            ("Audit All IOS ACLs from Input", check_ip_in_acl_ios),
+            ("Audit All Nexus ACLs from Input",check_ip_in_acl_nexus),
             ("Audit Interfaces for an IP Address", interface_t_shoot)
         ]
 

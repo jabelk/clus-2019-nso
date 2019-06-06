@@ -30,7 +30,7 @@ def create_csv_list_of_tuples(listoftuples_tocsv, headers, device, type_of_audit
             
 
 class NetDev:
-
+    ROBOT_LIBRARY_SCOPE = 'TEST SUITE'
     def __init__(self, name):
         self.name = name
         self.get_os_type()
@@ -47,7 +47,7 @@ class NetDev:
             root = ncs.maagic.get_root(t)
             self.os_type = root.devices.device[self.name].platform.name
 
-    def find_ip_access_list(self, ip):
+    def find_ip_access_list(self, ip, device_type):
         """
         Single search to see if a provided IP address
         is present inside any of a devices extended ACLs.
@@ -57,34 +57,35 @@ class NetDev:
         with ncs.maapi.single_read_trans('admin', 'python', groups=['ncsadmin']) as t:
             root = ncs.maagic.get_root(t)
             for box in root.devices.device:
-                print("checking Standard Access Lists for " + str(box.name))
-                if self.os_type == "ios-xe": 
-                    for acl in root.devices.device[box.name].config.ios__ip.access_list.standard.std_named_acl:
-                        print("checking ip access-list standard " + str(acl.name))
-                        for rule in root.devices.device[box.name].config.ios__ip.access_list.standard.std_named_acl[acl.name].std_access_list_rule:
-                            if ip in rule.rule:
-                                print(ip + " Is in acl " + str(acl.name))
-                                acl_tuple = ((str(acl.name),rule.rule))
-                                self.acl_answer.append(acl_tuple)
-                    print("checking Extended Access Lists for " + str(box.name))
-                    for acl in root.devices.device[box.name].config.ios__ip.access_list.extended.ext_named_acl:
-                        print("checking ip access-list extended " + str(acl.name))
-                        for rule in root.devices.device[box.name].config.ios__ip.access_list.extended.ext_named_acl[acl.name].ext_access_list_rule:
-                            if ip in rule.rule:
-                                print(ip + " Is in acl " + str(acl.name))
-                                acl_tuple = ((str(acl.name),rule.rule))
-                                self.acl_answer.append(acl_tuple)
-                if self.os_type == "NX-OS": 
-                    for acl in root.devices.device[box.name].config.nx__ip.access_list.list_name:
-                        print("checking ip access-list " + str(acl.id))
-                        for sequence in acl.sequence:
-                            acl_line = "{} {} {} {} {}".format(str(sequence.id), str(sequence.action),str(sequence.source.address_and_prefix), 
-                                str(sequence.address_and_prefix), 
-                                str(sequence.protocol))
-                            if ip in acl_line:
-                                self.acl_answer.append((str(acl.id), acl_line))
-                                acl_tuple = (str(acl.id), acl_line)
-                                self.acl_answer.append(acl_tuple)
+                if box.platform.name == device_type:
+                    print("checking Standard Access Lists for " + str(box.name))
+                    if self.os_type == "ios-xe": 
+                        for acl in root.devices.device[box.name].config.ios__ip.access_list.standard.std_named_acl:
+                            print("checking ip access-list standard " + str(acl.name))
+                            for rule in root.devices.device[box.name].config.ios__ip.access_list.standard.std_named_acl[acl.name].std_access_list_rule:
+                                if ip in rule.rule:
+                                    print(ip + " Is in acl " + str(acl.name))
+                                    acl_tuple = ((str(acl.name),rule.rule))
+                                    self.acl_answer.append(acl_tuple)
+                        print("checking Extended Access Lists for " + str(box.name))
+                        for acl in root.devices.device[box.name].config.ios__ip.access_list.extended.ext_named_acl:
+                            print("checking ip access-list extended " + str(acl.name))
+                            for rule in root.devices.device[box.name].config.ios__ip.access_list.extended.ext_named_acl[acl.name].ext_access_list_rule:
+                                if ip in rule.rule:
+                                    print(ip + " Is in acl " + str(acl.name))
+                                    acl_tuple = ((str(acl.name),rule.rule))
+                                    self.acl_answer.append(acl_tuple)
+                    if self.os_type == "NX-OS": 
+                        for acl in root.devices.device[box.name].config.nx__ip.access_list.list_name:
+                            print("checking ip access-list " + str(acl.id))
+                            for sequence in acl.sequence:
+                                acl_line = "{} {} {} {} {}".format(str(sequence.id), str(sequence.action),str(sequence.source.address_and_prefix), 
+                                    str(sequence.address_and_prefix), 
+                                    str(sequence.protocol))
+                                if ip in acl_line:
+                                    self.acl_answer.append((str(acl.id), acl_line))
+                                    acl_tuple = (str(acl.id), acl_line)
+                                    self.acl_answer.append(acl_tuple)
         return self.acl_answer
         
 
