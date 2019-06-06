@@ -16,17 +16,17 @@ Check Sync NSO against a Live Device: Initial check
     ${return}=    Check Sync   ${nso_devicename}
     Should Be True    ${return}
 
-# Verify IOS Version is Correct
-#     ${return}=    Send Cli Cmd   ${nso_devicename}  ${command} 
-#     Should Contain    ${return}     ${ios_version} 
-# Verify IP is in ACL
-#     @{return}=    Find IP Access List   ${acl_ip_to_find} ${device_type}
-#     Log List  ${return}
-#     :FOR  ${acl_iter}  IN  @{return}
-#     \    ${rule}=  Get From Dictionary  ${acl_iter}  rule
-#     \    Log  ${rule}
-#     # \    # Option 2
-#     # \    Log  ${acl_iter["rule"]}
-#     # \    Should Contain  ${acl_iter["rule"]}  ${acl_ip_to_find}
-#     END
+Verify IOS Version is Correct
+    ${return}=    Send Cli Cmd   ${nso_devicename}  ${command} 
+    Should Contain    ${return}     ${ios_version} 
+Verify IP is in ACL
+    @{return}=    Find IP Access List   ${acl_ip_to_find} ${device_type}
+    Log List  ${return}
+    :FOR  ${acl_iter}  IN  @{return}
+    \    ${rule}=  Get From Dictionary  ${acl_iter}  rule
+    \    Log  ${rule}
+    # \    # Option 2
+    # \    Log  ${acl_iter["rule"]}
+    # \    Should Contain  ${acl_iter["rule"]}  ${acl_ip_to_find}
+    END
 
