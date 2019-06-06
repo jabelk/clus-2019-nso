@@ -52,11 +52,3 @@ def find_ip_access_list(ip):
                         print(ip + " Is in acl " + str(acl.name))
                         acl_answer.append({"name":str(acl.name),"rule":rule.rule})
     return acl_answer 
-
-# with ncs.maapi.single_read_trans('admin', 'python', groups=['ncsadmin']) as t:
-#         root = ncs.maagic.get_root(t)
-#         device = root.devices.device[nso_devicename]
-#         input1 = device.live_status.ios_stats__exec.show.get_input()
-#         input1.args = [command]
-#         output = device.live_status.ios_stats__exec.any(input1).result
-#         print( output)

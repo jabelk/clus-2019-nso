@@ -1,6 +1,7 @@
 import ncs
 import logging
 import csv
+# NetDev class based on James Curran's code
 
 def get_devs():
     device_list = []
