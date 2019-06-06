@@ -20,8 +20,14 @@ def create_csv_list_of_tuples(listoftuples_tocsv, headers, device, type_of_audit
     with open('csv_archive/{}_audit_{}.csv'.format(type_of_audit, device),'w') as f:
         w = csv.writer(f,headers)
         w.writerow(headers)
-        for line in listoftuples_tocsv:
-            w.writerow(line)    
+        if type_of_audit == "interface" and "nxos" in device:
+            for line in listoftuples_tocsv:
+                for item in line:
+                    w.writerow(item)
+        else:
+            for line in listoftuples_tocsv:
+                w.writerow(line)
+            
 
 class NetDev:
 
